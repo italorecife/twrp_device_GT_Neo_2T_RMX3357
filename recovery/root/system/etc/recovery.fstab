@@ -1,0 +1,16 @@
+# 1 "vendor/mediatek/proprietary/hardware/fstab/mt6893/fstab.in"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+# 1 "<command-line>" 2
+# 1 "vendor/mediatek/proprietary/hardware/fstab/mt6893/fstab.in"
+# 119 "vendor/mediatek/proprietary/hardware/fstab/mt6893/fstab.in"
+system                                           /system               ext4     ro                                                              wait,avb=vbmeta_system,logical,first_stage_mount,avb_keys=/avb/q-gsi.avbpubkey:/avb/r-gsi.avbpubkey:/avb/s-gsi.avbpubkey
+product                                          /product              ext4     ro                                                              wait,avb,logical,first_stage_mount
+vendor                                           /vendor               ext4     ro                                                              wait,,avb,logical,first_stage_mount,async_discard
+odm                                              /odm                  ext4     ro                                                              wait,avb,logical,first_stage_mount
+/dev/block/by-name/userdata /data f2fs noatime,nosuid,nodev,discard,noflush_merge,fsync_mode=nobarrier,reserve_root=134217,resgid=1065,inlinecrypt wait,check,formattable,quota,latemount,resize,reservedsize=128m,checkpoint=fs,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,keydirectory=/metadata/vold/metadata_encryption,fsverity
+/dev/block/by-name/metadata /metadata ext4 noatime,nosuid,nodev,discard wait,check,formattable,first_stage_mount
+/dev/block/by-name/misc                          /misc                 emmc     defaults                                                        defaults
+
+

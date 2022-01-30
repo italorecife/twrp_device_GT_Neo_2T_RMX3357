@@ -1,0 +1,110 @@
+import /tee.rc
+
+on init
+    export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/vendor/lib64/hw
+
+on fs
+    install_keyring
+
+    write /sys/class/power_supply/usb/otg_switch 1
+    write /sys/class/oplus_chg/usb/otg_switch 1
+
+on post-fs
+
+service keystore_auth /system/bin/keystore_auth
+    oneshot
+    user system
+    group root
+    disabled
+    seclabel u:r:recovery:s0
+
+service keystore /system/bin/keystore /tmp/misc/keystore
+    user root
+    group root drmrpc readproc log
+    disabled
+    seclabel u:r:recovery:s0
+
+# Start Daemon (Registry directories should already be present)
+service mobicore /vendor/bin/mcDriverDaemon --P1 /mnt/vendor/persist/mcRegistry \
+        -r /vendor/app/mcRegistry/06090000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/020f0000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/05120000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/020b0000000000000000000000000000.drbin \
+        -r /odm/vendor/app/mcRegistry/05070000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/030b0000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/03100000000000000000000000000000.drbin \
+        -r /odm/vendor/app/mcRegistry/030c0000000000000000000000000000.drbin \
+        -r /odm/vendor/app/mcRegistry/030f0000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/40188311faf343488db888ad39496f9a.drbin \
+        -r /vendor/app/mcRegistry/070c0000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/090b0000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/0f5eed3c3b5a47afacca69a84bf0efad.drbin \
+        -r /vendor/app/mcRegistry/07060000000000000000000000007169.drbin \
+        -r /vendor/app/mcRegistry/4be4f7dc1f2c11e5b5f7727283247c7f.drbin \
+        -r /vendor/app/mcRegistry/08070000000000000000000000008270.drbin \
+        -r /vendor/app/mcRegistry/09080000000000000000000000009381.drbin \
+        -r /vendor/app/mcRegistry/07070000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/07407000000000000000000000000000.drbin \
+        -r /vendor/app/mcRegistry/9073f03a9618383bb1856eb3f990babd.drbin \
+        -r /vendor/app/mcRegistry/5020170115e016302017012521300000.drbin \
+        -r /odm/vendor/app/mcRegistry/09070000000000000000000000000000.drbin
+    user root
+    group root
+    disabled
+    seclabel u:r:recovery:s0
+
+service hal_cryptoeng_oppo /system/bin/hw/vendor.oplus.hardware.cryptoeng@1.0-service
+    user root
+    group root input sdcard_rw sdcard_r
+    disabled
+    seclabel u:r:recovery:s0
+
+service keymaster-4-0 /system/bin/android.hardware.keymaster@4.0-service.trustonic
+    user root
+    group root drmrpc
+    disabled
+    seclabel u:r:recovery:s0
+
+service gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+    user root
+    group root
+    disabled
+    seclabel u:r:recovery:s0
+
+on property:hwservicemanager.ready=true
+    start hal_cryptoeng_oppo
+    start mobicore
+    start keymaster-4-0
+    start gatekeeper-1-0
+
+on property:ro.crypto.state=unsupported
+    stop hal_cryptoeng_oppo
+    stop mobicore
+    stop keymaster-4-0
+    stop gatekeeper-1-0
+    stop servicemanager
+    stop hwservicemanager
+
+on property:ro.crypto.state=unencrypted
+    stop hal_cryptoeng_oppo
+    stop mobicore
+    stop keymaster-4-0
+    stop gatekeeper-1-0
+    stop servicemanager
+    stop hwservicemanager
+
+on property:twrp.decrypt.done=true
+    stop hal_cryptoeng_oppo
+    stop mobicore
+    stop keymaster-4-0
+    stop gatekeeper-1-0
+    stop servicemanager
+    stop hwservicemanager
+
+on post-fs-data
+    mkdir /data/vendor_de 0770 system system
+    mkdir /data/vendor_de/0 0770 system system
+    mkdir /data/vendor_de/0/cryptoeng 0770 system system
+
+on boot
+    start health-hal-2-1
